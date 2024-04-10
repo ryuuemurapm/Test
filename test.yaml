@@ -1,0 +1,1943 @@
+openapi: 3.0.1
+info:
+  title: AI-KATA用API
+  description: "- 本APIにて、レスポンス内容のstring項目で中身が空の場合は、空文字(\"\")を返却する\n- 本APIにて、レスポンス内容のarray項目で中身が空の場合は、空のリスト[]を返却する\n    - 整数型の場合は0、浮動小数型の場合は0.0で置換して連携"
+  version: 2.1.2
+externalDocs:
+  description: "API仕様書URL(Boxリンク)"
+  url: https://7andi.app.box.com/file/1495129434013
+servers:
+- url: http://localhost:8003/
+  description: Local環境
+- url: https://comm-api-dev.7andi-gdpf.com/
+  description: DEV環境
+- url: https://comm-api-prd.7andi-gdpf.com/
+  description: PRD環境
+tags:
+  - name: baihen
+    description: "売変テーブル"
+  - name: item_detail
+    description: "商品詳細テーブル"
+  - name: master_data
+    description: "各種マスタ"
+  - name: dat_upload
+    description: "datアップロード"
+paths:
+  /baihen/get/alldata:
+    post:
+      tags:
+        - baihen
+      summary: 1. 売価変更データ一覧の取得/差分更新取得
+      description: "- 対象年月日の売変作業表一覧を取得し、画面に一覧表示する。\n- 現状、ページング機能は実装していないため、1回のレスポンスで全レコードを返す"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_SEQUENCE_NUMBER:
+                  type: integer
+                  format: number
+                INPUT_DATA:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      MISE_CD:
+                        type: string
+                      OUT_DATE:
+                        type: string
+                        example: YYYYMMDD
+                      DATA_SHIKI_KUBUN:
+                        type: integer
+                        format: number
+                        example: 1
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/BaihenResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/check:
+    post:
+      tags:
+        - baihen
+      summary: 2. 売価チェック結果の更新
+      description: "- スマホの売価チェックアプリで実行した売価チェック結果をサーバーに送信する\n- ※複数レコードを同時送信可"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/BaikaRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/pop:
+    post:
+      tags:
+        - baihen
+      summary: 3. Popステータスの更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、POP状態を更新する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/PopRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/item_ymd:
+    post:
+      tags:
+        - baihen
+      summary: 4. 店舗売価/終了日の更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、店舗売価と終了日を更新する。"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/BaikaShuryoRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/insatsu:
+    post:
+      tags:
+        - baihen
+      summary: 5. 印刷指示の更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、POP状態を更新する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/InsatsuRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/hazushi:
+    post:
+      tags:
+        - baihen
+      summary: 6. 外し指示の更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、外し指示を更新する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/HazushiRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/shiji_flag:
+    post:
+      tags:
+        - baihen
+      summary: 7. 指示フラグの更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、指示フラグを更新する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/ShijiRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/update/manual_data:
+    post:
+      tags:
+        - baihen
+      summary: 8. 手動完了情報の更新
+      description: "- 売変作業表一覧上で商品と陳列場所を選択し、手動完了情報を更新する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UPDATE_DATA:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/ManualShijiRequest'
+                      - $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/upload/memo_gazou:
+    post:
+      tags:
+        - baihen
+      summary: メモ画像のファイルアップロード(9 ~ 12を合わせて、リクエストにアップロードする種類を追加)
+      description: "クエリパラメータで設定したメモ画像のアップロード"
+      parameters:
+        - name: RECORD_ID
+          in: query
+          description: レコード識別子
+          required: true
+          schema:
+            type: string
+        - name: LAST_UPDATE_USER
+          in: query
+          description: 従業員番号
+          required: false
+          schema:
+            type: string
+        - name: MEMO_KIND
+          in: query
+          description: "店舗売価画像, 店舗売価メモの筆記線, 印刷指示画像, 印刷指示メモの筆記線, 外し指示画像, 外し指示メモの筆記線, 手動完了メモ画像, 手動完了メモの筆記線の計8種類"
+          required: true
+          schema:
+            type: integer
+            format: number
+            example: 1 ~ 8
+        - name: DEL_FLG
+          in: query
+          description: "0: 画像アップロード, 1: 画像削除"
+          required: true
+          schema:
+            type: integer
+            format: number
+            example: "0 or 1"
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/get/memo_gazou:
+    post:
+      tags:
+        - baihen
+      summary: メモ画像の取得(13と14を合わせて、識別キーをリクエストに追加)
+      description: "- メモ画像をアップロードした時にレスポンスにセットされた「RECORD_ID」にて、アップロード画像（PNG画像）を取得する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                INPUT_DATA:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      RECORD_ID:
+                        type: string
+                      MEMO_KIND:
+                        type: integer
+                        format: number
+                        example: 1 ~ 8
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/FileResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/reset/tutorial:
+    post:
+      tags:
+        - baihen
+      summary: 15. チュートリアルリセット
+      description: "- リクエストパラメータで指定された店舗コード、当日年月日、翌日年月日のデータを使用して、チュートリアルモードを初期化する"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                INPUT_DATA:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      STORE_ID:
+                        type: string
+                      TODAY:
+                        type: string
+                        example: YYYYMMDD
+                      NEXTDAY:
+                        type: string
+                        example: YYYYMMDD
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /baihen/check/health:
+    get:
+      tags:
+        - baihen
+      summary: 16. healthチェック
+      description: "- このメソッドを定期的に呼ぶことで、GDP環境のサーバーに繋がっていることを確認する\n- HTTPステータス 200が返ってくれば、正常に繋がっているとみなす。（レスポンスは \"true\" 固定とする。セット値はアプリ側は特に使用はしていない）"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /item_detail/get/alldata:
+    post:
+      tags:
+        - item_detail
+      summary: 商品詳細データ一覧の取得
+      description: "- 商品詳細テーブルの一覧を取得し、ローカルに保持する\n- 売変レコードの右恥の「詳細」ボタンを押すことで、表示される情報として利用する"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                MISE_CD:
+                  type: array
+                  items:
+                    type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/ItemDetailResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/jigyoubu_master:
+    get:
+      tags:
+        - master_data
+      summary: 1. 事業部マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/JigyoubuResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/dpt_master:
+    get:
+      tags:
+        - master_data
+      summary: 2. DPT名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/DPTmasterResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/uriba_master:
+    get:
+      tags:
+        - master_data
+      summary: 3. 売場分類名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/UribamasterResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/shina_master:
+    get:
+      tags:
+        - master_data
+      summary: 4. 品揃分類名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/SinamasterResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/baihen_master:
+    get:
+      tags:
+        - master_data
+      summary: 5. 売変理由名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/BaihenriyuResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/sagyo_master:
+    get:
+      tags:
+        - master_data
+      summary: 6. 作業内容名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/SagyonaiyoResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/popshurui_master:
+    get:
+      tags:
+        - master_data
+      summary: 7. POP種類名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/PopshuruiResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/popsize_master:
+    get:
+      tags:
+        - master_data
+      summary: 8. POPサイズ名称マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/PopsizeResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/chinretsu_master:
+    post:
+      tags:
+        - master_data
+      summary: 9. 陳列情報マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                MISE_CD:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/ChinretsuResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/chiku_master:
+    get:
+      tags:
+        - master_data
+      summary: 10. 地区マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/ChikuResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /master_data/get/mise_master:
+    get:
+      tags:
+        - master_data
+      summary: 11. 店マスタ情報の取得
+      description: "- 各種マスタの日本語名や、リストを全テーブル、全件を端末に連携する\n- リクエストタイミング\n    - 拡大店時: 端末から手動でリクエスト\n    - 全店時：ログイン時に自動リクエスト"
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/MiseResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /dat_upload/upload:
+    post:
+      tags:
+        - dat_upload
+      summary: 1. datファイルアップロード
+      description: "- FTPによりDLしたdatファイルをアップロードするためのAPI\n- アップロードされたdatファイルは、サーバー側で処理され、売変テーブルおよび商品詳細テーブルが更新される\n- アップロードされたdatファイルは一定期間S3に保管する\n- FILE_TYPE詳細\n    - 0: 当売表\n    - 1: 翌売表\n    - 2: 売価一括\n    - 3: 売価差分\n    - 4: nanacoボーナス\n    - 5:ユーザー認証情報"
+      parameters:
+        - name: MISE_CD
+          in: query
+          description: 店コード
+          required: true
+          schema:
+            type: string
+        - name: OUT_DATE
+          in: query
+          description: 日付
+          required: true
+          schema:
+            type: string
+            example: YYYYMMDD
+        - name: FILE_TYPE
+          in: query
+          description: ファイルタイプ(0 ~ 5)
+          required: true
+          schema:
+            type: integer
+            format: number
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+  /dat_upload/update_check:
+    post:
+      tags:
+        - dat_upload
+      summary: 2. datファイル存在チェック
+      description: "- これからアップロードしようとするdatファイルが存在するかどうかチェックする\n- 運用上、チェックするファイルは「売表表」のみとなる\n- 通常時は当売表、売価一括、nanacoボーナス、ユーザー認証情報は自動連携されるため\n- 売価差分は性質上、都度DLが必要なため\n- ファイルあり => result: trueでレスポンス\n- ファイルなし => result: falseでレスポンス"
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                MISE_CD:
+                  type: string
+                OUT_DATE:
+                  type: string
+                  example: YYYYMMDD
+                FILE_TYPE:
+                  type: string
+                  format: 0 or 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CommonResponse'
+                  - $ref: '#/components/schemas/CheckResponse'
+        "400":
+          description: NG - 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+        "500":
+          description: NG - 想定外エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonResponse'
+      security:
+      - GDPApiKey: []
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    UpdateRequest:
+      type: object
+      properties:
+        UPDATE_TIME:
+          type: string
+          example: "YYYY-MM-DDThh:mm:ss"
+          format: date-time
+      required:
+        - UPDATE_TIME
+    BaikaRequest:
+      type: object
+      properties:
+        MISE_CD:
+          type: string
+        OUT_DATE:
+          type: string
+          example: YYYYMMDD
+          format: date
+        P_JAN:
+          type: string
+          example: "13桁数字"
+        URB_CD:
+          type: string
+        ROW_CD:
+          type: string
+        GND_CD:
+          type: string
+        TND_CD:
+          type: string
+        NRBJUN:
+          type: string
+        GENZAI_BAIKA_ZEINUKI:
+          type: integer
+          format: number
+        PRICE_CHECK_RESULT_CD:
+          type: integer
+          format: number
+          example: 0 or 1 or 2 or 3
+        TSUIKA_SHIJI:
+          type: integer
+          format: number
+          example: "0 or 1"
+      required:
+        - MISE_CD
+        - OUT_DATE
+        - P_JAN
+        - URB_CD
+        - ROW_CD
+        - GND_CD
+        - TND_CD
+        - NRBJUN
+    PopRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        STATUS_CD:
+          type: integer
+          format: number
+      required:
+        - RECORD_ID
+        - STATUS_CD
+    BaikaShuryoRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        TENPO_BAIKA_ZEINUKI:
+          type: integer
+          format: number
+        SEIRITSU_KOSU_NEW:
+          type: integer
+          format: number
+        SEIRITSU_BAIKA_ZEINUKI_NEW:
+          type: integer
+          format: number
+        KAISHI_YMD_NEW:
+          type: string
+          example: YYYYMMDD
+        SHURYO_YMD_NEW:
+          type: string
+          example: YYYYMMDD
+      required:
+        - RECORD_ID
+    InsatsuRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        INSATSU_SHIJI:
+          type: string
+      required:
+        - RECORD_ID
+    HazushiRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        HAZUSHISHIJI:
+          type: integer
+          format: number
+          example: 0 or 1
+      required:
+        - RECORD_ID
+    ShijiRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        TSUIKA_SHIJI:
+          type: integer
+          format: number
+          example: 0 or 1
+        STORE_PRICE_INSTRUCTION_FLAG:
+          type: integer
+          format: number
+          example: 0 or 1
+        FORMATION_INSTRUCTION_FLAG:
+          type: integer
+          format: number
+          example: 0 or 1
+        PRINT_ORDER_INSTRUCTION_FLAG:
+          type: integer
+          format: number
+          example: 0 or 1
+        REMOVE_ORDER_INSTRUCTION_FLAG:
+          type: integer
+          format: number
+          example: 0 or 1
+      required:
+        - RECORD_ID
+    ManualShijiRequest:
+      type: object
+      properties:
+        RECORD_ID:
+          type: string
+        STATUS_CD:
+          type: integer
+          format: number
+          example: 1 or 2 or 0
+        PRICE_CHECK_RESULT_CD:
+          type: integer
+          format: number
+          example: 0 or 1 or 2 or 3
+        MANUAL_COMPLETION_RIYU:
+          type: integer
+          format: number
+          example: 1 or 2 or 3
+      required:
+        - RECORD_ID
+    CommonResponse:
+      type: object
+      properties:
+        res_cd:
+          type: integer
+          format: number
+        msg:
+          type: string
+    BaihenResponse:
+      type: object
+      properties:
+        UPDATE_SEQUENCE_NUMBER:
+          type: integer
+          format: number
+          example: 10
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              RECORD_ID:
+                type: string
+              MISE_CD:
+                type: string
+              OUT_DATE:
+                type: string
+                example: YYYYMMDD
+              P_JAN:
+                type: string
+              F_JAN:
+                type: string
+              DATA_SHIKI_KUBUN:
+                type: integer
+                format: number
+                example: 1 or 2
+              BAIHEN_RIYU:
+                type: string
+              URB_CD:
+                type: string
+              ROW_CD:
+                type: string
+              GND_CD:
+                type: string
+              TND_CD:
+                type: string
+              NRBJUN:
+                type: string
+              JIGYOBU_CD:
+                type: string
+              DPT_CD:
+                type: string
+              URIBA_CD:
+                type: string
+              SHINA_CD:
+                type: string
+              TENPO_HONBU:
+                type: integer
+                format: number
+                example: 1 or 2 or 0
+              SHIN_BAIKA_ZEIKOMI:
+                type: integer
+                format: number
+              GENZAI_BAIKA_ZEIKOMI:
+                type: integer
+                format: number
+              KAISHI_YMD:
+                type: string
+                example: YYYYMMDD
+              SHURYO_YMD:
+                type: string
+                example: YYYYMMDD
+              SEIRITSU_KOSU:
+                type: integer
+                format: number
+              SEIRITSU_BAIKA_ZEIKOMI:
+                type: integer
+                format: number
+              SAGYO_NAIYO:
+                type: string
+              ZAIKOSU:
+                type: string
+              SHOHIN_NAME:
+                type: string
+              SEIRITSU_BAIKA_ZEINUKI:
+                type: integer
+                format: number
+              GENZAI_BAIKA_ZEINUKI:
+                type: integer
+                format: number
+              SHIN_BAIKA_ZEINUKI:
+                type: integer
+                format: number
+              HASSEI_RIYU:
+                type: integer
+                format: number
+                example: 1 or 2
+              STATUS_CD:
+                type: integer
+                format: number
+                example: 1 or 2 or 0
+              PRICE_CHECK_RESULT_CD:
+                type: integer
+                format: number
+                example: 0 or 1 or 2 or 3
+              TENPO_BAIKA_ZEINUKI:
+                type: integer
+                format: number
+              SEIRITSU_KOSU_NEW:
+                type: integer
+                format: number
+              SEIRITSU_BAIKA_ZEINUKI_NEW:
+                type: integer
+                format: number
+              KAISHI_YMD_NEW:
+                type: string
+                example: YYYYMMDD
+              SHURYO_YMD_NEW:
+                type: string
+                example: YYYYMMDD
+              TENPO_BAIKA_GAZO:
+                type: string
+              TENPO_BAIKA_MEMO_LINES:
+                type: string
+              INSATSU_SHIJI:
+                type: string
+              INSATSU_GAZO:
+                type: string
+              INSATSU_MEMO_LINES:
+                type: string
+              HAZUSHISHIJI:
+                type: integer
+                format: number
+                description: 当売表のレコードは常にNULL
+              HAZUSHI_GAZO:
+                type: string
+                description: 当売表のレコードは常にNULL
+              HAZUSHI_MEMO_LINES:
+                type: string
+                description: 当売表のレコードは常にNULL
+              TSUIKA_SHIJI:
+                type: integer
+                format: number
+                example: 0 or 1
+              STORE_PRICE_INSTRUCTION_FLAG:
+                type: integer
+                format: number
+                example: 0 or 1
+              FORMATION_INSTRUCTION_FLAG:
+                type: integer
+                format: number
+                example: 0 or 1
+              PRINT_ORDER_INSTRUCTION_FLAG:
+                type: integer
+                format: number
+                example: 0 or 1
+              REMOVE_ORDER_INSTRUCTION_FLAG:
+                type: integer
+                format: number
+                example: 0 or 1
+              MANUAL_COMPLETION_RIYU:
+                type: integer
+                format: number
+                description: 翌売表のレコードは常にNULL
+              MANUAL_COMPLETION_GAZO:
+                type: string
+                description: 翌売表のレコードは常にNULL
+              MANUAL_COMPLETION_MEMO_LINES:
+                type: string
+                description: 翌売表のレコードは常にNULL
+          example:
+            - RECORD_ID: 'RECORD_ID1'
+              MISE_CD: 'L001'
+              OUT_DATE: '20230908'
+              P_JAN: '4902705126558'
+              F_JAN: '4902705126558'
+              DATA_SHIKI_KUBUN: 1
+              BAIHEN_RIYU: '0'
+              URB_CD: '007'
+              ROW_CD: '01'
+              GND_CD: '001'
+              TND_CD: '01'
+              NRBJUN: '001'
+              JIGYOBU_CD: '1131050199'
+              DPT_CD: '073'
+              URIBA_CD: '0368'
+              SHINA_CD: '00559'
+              TENPO_HONBU: 1
+              SHIN_BAIKA_ZEIKOMI: 0
+              GENZAI_BAIKA_ZEIKOMI: 0
+              KAISHI_YMD: '20230908'
+              SHURYO_YMD: '20230928'
+              SEIRITSU_KOSU: 0
+              SEIRITSU_BAIKA_ZEIKOMI: 0
+              SAGYO_NAIYO: '01'
+              ZAIKOSU: '10'
+              SHOHIN_NAME: '明治おいしい牛乳900ml'
+              SEIRITSU_BAIKA_ZEINUKI: 0
+              GENZAI_BAIKA_ZEINUKI: 0
+              SHIN_BAIKA_ZEINUKI: 0
+              HASSEI_RIYU: 1
+              STATUS_CD: 0
+              PRICE_CHECK_RESULT_CD: 0
+              TENPO_BAIKA_ZEINUKI: 0
+              SEIRITSU_KOSU_NEW: 0
+              SEIRITSU_BAIKA_ZEINUKI_NEW: 0
+              KAISHI_YMD_NEW: ''
+              SHURYO_YMD_NEW: ''
+              TENPO_BAIKA_GAZO: ''
+              TENPO_BAIKA_MEMO_LINES: ''
+              INSATSU_SHIJI: ''
+              INSATSU_GAZO: ''
+              INSATSU_MEMO_LINES: ''
+              HAZUSHISHIJI: 0
+              HAZUSHI_GAZO: ''
+              HAZUSHI_MEMO_LINES: ''
+              TSUIKA_SHIJI: 0
+              STORE_PRICE_INSTRUCTION_FLAG: 0
+              FORMATION_INSTRUCTION_FLAG: 0
+              PRINT_ORDER_INSTRUCTION_FLAG: 0
+              REMOVE_ORDER_INSTRUCTION_FLAG: 0
+              MANUAL_COMPLETION_RIYU: 0
+              MANUAL_COMPLETION_GAZO: ''
+              MANUAL_COMPLETION_MEMO_LINES: ''
+    FileUploadResponse:
+      type: object
+      properties:
+        file_id:
+          type: string
+          format: binary
+        message:
+          type: string
+          example: "action succeeded"
+    UploadRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          example: "write"
+        extension:
+          type: string
+          example: "png or txt"
+        data:
+          type: string
+          format: binary
+    FileResponse:
+      type: object
+      properties:
+        png_file:
+          type: string
+          format: binary
+    CheckResponse:
+      type: object
+      properties:
+        result:
+          type: boolean
+    ItemDetailResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              P_JAN:
+                type: string
+              MISE_CD:
+                type: string
+              TEKIYO_KAISHI_YMD:
+                type: string
+                example: YYYYMMDD
+              TORI_CD:
+                type: string
+              DEPO_CD:
+                type: string
+              F_JAN:
+                type: string
+              TEKIYO_SHURYO_YMD:
+                type: string
+                example: YYYYMMDD
+              SHOHIN_NAME:
+                type: string
+              HACCHU_TANNI_SU:
+                type: number
+                format: float
+              HYOJUN_NEIRE_RITSU:
+                type: number
+                format: float
+              KIHON_GENTANKA_ZEIKOMI:
+                type: integer
+                format: number
+              KIHON_GENTANKA_ZEINUKI:
+                type: integer
+                format: number
+              IRIME:
+                type: integer
+                format: number
+              CASE_SU:
+                type: integer
+                format: number
+              SURYO:
+                type: number
+                format: float
+              NOHINBI:
+                type: string
+                example: YYYYMMDD
+              JIGYOBU_CD:
+                type: string
+              DPT_CD:
+                type: string
+              URIBA_CD:
+                type: string
+              SHINA_CD:
+                type: string
+              BAIKA_ZEIKOMI:
+                type: integer
+                format: number
+              PLUBAIKA_ZEIKOMI:
+                type: integer
+                format: number
+              SEIRITSU_KOSU:
+                type: string
+              SEIRITSU_BAIKA_ZEIKOMI:
+                type: string
+              ZEIKUBUN:
+                type: integer
+                format: number
+              ZEIRITSU:
+                type: integer
+                format: number
+              ZENJITSU_ZAIKO:
+                type: integer
+                format: number
+          example:
+            - P_JAN: '4902705126558'
+              MISE_CD: 'L001'
+              TEKIYO_KAISHI_YMD: '20230908'
+              TORI_CD: '057649'
+              DEPO_CD: '00'
+              F_JAN: '4902705126558'
+              TEKIYO_SHURYO_YMD: '20230927'
+              SHOHIN_NAME: '明治おいしい牛乳９００ｍｌ'
+              HACCHU_TANNI_SU: 12.0
+              HYOJUN_NEIRE_RITSU: 0.31
+              KIHON_GENTANKA_ZEIKOMI: 226.43
+              KIHON_GENTANKA_ZEINUKI: 200
+              IRIME: 12
+              CASE_SU: 2
+              SURYO: 24.0
+              NOHINBI: '20230901'
+              JIGYOBU_CD: '1131050199'
+              DPT_CD: '073'
+              URIBA_CD: '0369'
+              SHINA_CD: '00559'
+              BAIKA_ZEIKOMI: 226
+              PLUBAIKA_ZEIKOMI: 223
+              SEIRITSU_KOSU: '0'
+              SEIRITSU_BAIKA_ZEIKOMI: '100'
+              ZEIKUBUN: 1
+              ZEIRITSU: 10
+              ZENJITSU_ZAIKO: 0
+    JigyoubuResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              JIGYOBU_CD:
+                type: string
+              SHOBUN_NAME:
+                type: string
+              SHOBUN_KANA:
+                type: string
+              SHOBUN_TANSHUKU_NAME:
+                type: string
+              OYA_SHOBUN_CD:
+                type: string
+              RECEIPT_NAME:
+                type: string
+    DPTmasterResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              DPT_CD:
+                type: string
+              SHOBUN_NAME:
+                type: string
+              SHOBUN_KANA:
+                type: string
+              SHOBUN_TANSHUKU_NAME:
+                type: string
+              OYA_SHOBUN_CD:
+                type: string
+              RECEIPT_NAME:
+                type: string
+    UribamasterResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              URIBA_CD:
+                type: string
+              SHOBUN_NAME:
+                type: string
+              SHOBUN_KANA:
+                type: string
+              SHOBUN_TANSHUKU_NAME:
+                type: string
+              OYA_SHOBUN_CD:
+                type: string
+              RECEIPT_NAME:
+                type: string
+          example:
+            - URIBA_CD: '0369'
+              SHOBUN_NAME: '牛乳類'
+              SHOBUN_KANA: 'カナ'
+              SHOBUN_TANSHUKU_NAME: 'たんしゅくめい'
+              OYA_SHOBUN_CD: ''
+              RECEIPT_NAME: ''
+    SinamasterResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              SHINA_CD:
+                type: string
+              SHOBUN_NAME:
+                type: string
+              SHOBUN_KANA:
+                type: string
+              SHOBUN_TANSHUKU_NAME:
+                type: string
+              OYA_SHOBUN_CD:
+                type: string
+              RECEIPT_NAME:
+                type: string
+          example:
+            - SHINA_CD: '00559'
+              SHOBUN_NAME: '牛乳'
+              SHOBUN_KANA: 'カナ'
+              SHOBUN_TANSHUKU_NAME: 'たんしゅくめい'
+              OYA_SHOBUN_CD: ''
+              RECEIPT_NAME: ''
+    BaihenriyuResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              BAIHEN_RIYU:
+                type: string
+              BAIHEN_RIYU_NAME:
+                type: string
+          example:
+            - BAIHEN_RIYU: '00'
+              BAIHEN_RIYU_NAME: ''
+            - BAIHEN_RIYU: '01'
+              BAIHEN_RIYU_NAME: 'よりまと'
+            - BAIHEN_RIYU: '02'
+              BAIHEN_RIYU_NAME: '基売変更'
+            - BAIHEN_RIYU: '03'
+              BAIHEN_RIYU_NAME: '本部企画中目'
+            - BAIHEN_RIYU: '04'
+              BAIHEN_RIYU_NAME: '今月のお買得'
+            - BAIHEN_RIYU: '05'
+              BAIHEN_RIYU_NAME: '本部重点商品'
+            - BAIHEN_RIYU: '06'
+              BAIHEN_RIYU_NAME: '★広告商品★'
+            - BAIHEN_RIYU: '07'
+              BAIHEN_RIYU_NAME: '★日　替★'
+            - BAIHEN_RIYU: '08'
+              BAIHEN_RIYU_NAME: '項目変更'
+            - BAIHEN_RIYU: '09'
+              BAIHEN_RIYU_NAME: '本部企画戻し'
+            - BAIHEN_RIYU: '10'
+              BAIHEN_RIYU_NAME: 'よりまと戻し'
+            - BAIHEN_RIYU: '11'
+              BAIHEN_RIYU_NAME: 'プロパー企画'
+            - BAIHEN_RIYU: '12'
+              BAIHEN_RIYU_NAME: 'よりまとＰ企'
+            - BAIHEN_RIYU: '13'
+              BAIHEN_RIYU_NAME: 'よりまと中目'
+            - BAIHEN_RIYU: '14'
+              BAIHEN_RIYU_NAME: 'よりまと月撰'
+            - BAIHEN_RIYU: '15'
+              BAIHEN_RIYU_NAME: 'よりまと重点'
+            - BAIHEN_RIYU: '16'
+              BAIHEN_RIYU_NAME: 'よりまと広告'
+            - BAIHEN_RIYU: '17'
+              BAIHEN_RIYU_NAME: 'よりまと日替'
+    SagyonaiyoResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              SAGYO_NAIYO:
+                type: string
+              SAGYO_NAIYO_NAME:
+                type: string
+          example:
+              - SAGYO_NAIYO: '00'
+                SAGYO_NAIYO_NAME: ''
+              - SAGYO_NAIYO: '01'
+                SAGYO_NAIYO_NAME: 'ＰＯＰ取付'
+              - SAGYO_NAIYO: '02'
+                SAGYO_NAIYO_NAME: 'ＰＯＰ確認'
+              - SAGYO_NAIYO: '03'
+                SAGYO_NAIYO_NAME: 'ＰＯＰ外し'
+              - SAGYO_NAIYO: '04'
+                SAGYO_NAIYO_NAME: 'Ｐカード'
+              - SAGYO_NAIYO: '05'
+                SAGYO_NAIYO_NAME: '広告確認'
+              - SAGYO_NAIYO: '06'
+                SAGYO_NAIYO_NAME: '日替確認'
+              - SAGYO_NAIYO: '07'
+                SAGYO_NAIYO_NAME: '企画確認'
+
+    PopshuruiResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              POP_SHURUI:
+                type: string
+              POP_SHURUI_NAME:
+                type: string
+              POP_SHURUI_TANSHUKU_NAME:
+                type: string
+              POP_SIZE_LIST:
+                type: string
+          example:
+            - POP_SHURUI: '00'
+              POP_SHURUI_NAME: 'プライスカード'
+              POP_SHURUI_TANSHUKU_NAME: 'Ｐカード'
+              POP_SIZE_LIST: '03,04,07'
+            - POP_SHURUI: '01'
+              POP_SHURUI_NAME: '広告の品'
+              POP_SHURUI_TANSHUKU_NAME: '広告の品'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '02'
+              POP_SHURUI_NAME: 'お買得'
+              POP_SHURUI_TANSHUKU_NAME: 'お買得'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '03'
+              POP_SHURUI_NAME: 'スペシャルプライス'
+              POP_SHURUI_TANSHUKU_NAME: 'スぺプラ'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '04'
+              POP_SHURUI_NAME: 'ズバ安'
+              POP_SHURUI_TANSHUKU_NAME: 'ズバ安'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '05'
+              POP_SHURUI_NAME: '300品目'
+              POP_SHURUI_TANSHUKU_NAME: '300品目'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '06'
+              POP_SHURUI_NAME: '値下しました'
+              POP_SHURUI_TANSHUKU_NAME: '値下'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '07'
+              POP_SHURUI_NAME: 'いつでもお安く'
+              POP_SHURUI_TANSHUKU_NAME: 'いつ安'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '08'
+              POP_SHURUI_NAME: '１２３'
+              POP_SHURUI_TANSHUKU_NAME: '１２３'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '09'
+              POP_SHURUI_NAME: 'ど真ん中'
+              POP_SHURUI_TANSHUKU_NAME: 'ど真ん中'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '10'
+              POP_SHURUI_NAME: '部門デー'
+              POP_SHURUI_TANSHUKU_NAME: '部門デー'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '11'
+              POP_SHURUI_NAME: '新登場'
+              POP_SHURUI_TANSHUKU_NAME: '新登場'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '12'
+              POP_SHURUI_NAME: 'これはお酒です'
+              POP_SHURUI_TANSHUKU_NAME: 'これ酒'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '13'
+              POP_SHURUI_NAME: 'おなじみの味'
+              POP_SHURUI_TANSHUKU_NAME: 'なじみ味'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+            - POP_SHURUI: '14'
+              POP_SHURUI_NAME: 'セブンプレミアム'
+              POP_SHURUI_TANSHUKU_NAME: '７プレ'
+              POP_SIZE_LIST: '00,01,02,03,04,05,06,07'
+
+    PopsizeResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              POP_SIZE:
+                type: string
+              POP_SIZE_NAME:
+                type: string
+          example:
+            - POP_SIZE: '00'
+              POP_SIZE_NAME: 'ＳＦ'
+            - POP_SIZE: '01'
+              POP_SIZE_NAME: 'Ｆ'
+            - POP_SIZE: '02'
+              POP_SIZE_NAME: 'Ｆ倍'
+            - POP_SIZE: '03'
+              POP_SIZE_NAME: 'ＰＣ'
+            - POP_SIZE: '04'
+              POP_SIZE_NAME: '1/2ＰＣ'
+            - POP_SIZE: '05'
+              POP_SIZE_NAME: 'Ｊ'
+            - POP_SIZE: '06'
+              POP_SIZE_NAME: '1/2Ｊ'
+            - POP_SIZE: '07'
+              POP_SIZE_NAME: '極小'
+    ChinretsuResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              MISE_CD:
+                type: string
+              URB_CD:
+                type: string
+              ROW_CD:
+                type: string
+              GND_CD:
+                type: string
+              TND_CD:
+                type: string
+              NRBJUN:
+                type: string
+              P_JAN:
+                type: string
+              FS:
+                type: string
+              SAI_TRT_SU:
+                type: string
+          example:
+            - MISE_CD: 'L001'
+              URB_CD: '007'
+              ROW_CD: '01'
+              GND_CD: '001'
+              TND_CD: '01'
+              NRBJUN: '001'
+              P_JAN: '4902705126558'
+              FS: ''
+              SAI_TRT_SU: ''
+    ChikuResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              CHIKU_CD:
+                type: string
+              CHIKU_NAME:
+                type: string
+              CHIKU_KANA:
+                type: string
+              CHIKU_TANSHUKU_NAME:
+                type: string
+              OYA_CHIKU_CD:
+                type: string
+          example:
+            - CHIKU_CD: '000'
+              CHIKU_NAME: 'ローカル地区'
+              CHIKU_KANA: 'ローカルチク'
+              CHIKU_TANSHUKU_NAME: 'タンシュク'
+              OYA_CHIKU_CD: '000'
+    MiseResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              MISE_CD:
+                type: string
+              MISE_NAME:
+                type: string
+              MISE_KANA:
+                type: string
+              MISE_TANSHUKU_NAME :
+                type: string
+              CHIKU_CD:
+                type: string
+              MISE_IP:
+                type: string
+          example:
+            - MISE_CD: 'L001'
+              MISE_NAME: 'ローカル001'
+              MISE_KANA: 'ローカルカナ'
+              MISE_TANSHUKU_NAME : 'ロー1'
+              CHIKU_CD: '000'
+              MISE_IP: '127.0.0.1'
+  securitySchemes:
+    GDPApiKey:
+      type: apiKey
+      name: x-7andi-apikey
+      in: header
+x-original-swagger-version: "2.0"
